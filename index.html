@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F5F5F7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NVDV CRM" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>NVDV Sales CRM</title>
+</head>
+<body>
+  <div id="offline-banner" class="status-banner hidden">Sin conexión · los cambios se guardarán en el iPhone</div>
+  <div id="update-banner" class="status-banner update hidden">
+    Nueva versión disponible
+    <button id="apply-update">Actualizar</button>
+  </div>
+
+  <section id="login-view" class="screen centered">
+    <div class="login-card">
+      <img class="login-logo" src="./assets/logo_nvdv_pharma.png" alt="NVDV PHARMA">
+      <h1>CRM móvil</h1>
+      <p>Accede con tu cuenta autorizada.</p>
+      <form id="login-form">
+        <label>Correo electrónico</label>
+        <input id="email" type="email" autocomplete="username" required />
+        <label>Contraseña</label>
+        <input id="password" type="password" autocomplete="current-password" required />
+        <button type="submit" class="primary">Iniciar sesión</button>
+      </form>
+      <p id="login-error" class="error"></p>
+    </div>
+  </section>
+
+  <section id="crm-view" class="hidden">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <img class="header-logo" src="./assets/logo_nvdv_pharma.png" alt="NVDV PHARMA">
+        <div class="header-user">
+          <span class="crm-subtitle">CRM Comercial</span>
+          <small id="user-email"></small>
+        </div>
+      </div>
+      <button id="logout-btn" class="ghost small">Salir</button>
+    </header>
+
+    <main>
+      <section id="today-page" class="page active">
+        <div class="hero">
+          <div>
+            <small id="today-date"></small>
+            <h2>Hoy</h2>
+          </div>
+          <button id="refresh-all" class="ghost small">Actualizar</button>
+        </div>
+
+        <div class="client-target-grid">
+          <button class="client-target active-target" data-dashboard-state="ACTIVO">
+            <span class="status-dot"></span>
+            <span class="target-label">Farmacias activas</span>
+            <strong id="kpi-active">—</strong>
+            <small>Seleccionar farmacia</small>
+          </button>
+
+          <button class="client-target prospect-target" data-dashboard-state="PROSPECCION">
+            <span class="status-dot"></span>
+            <span class="target-label">Prospecciones</span>
+            <strong id="kpi-prospect">—</strong>
+            <small>Seleccionar farmacia</small>
+          </button>
+
+          <button class="client-target inactive-target" data-dashboard-state="INACTIVO">
+            <span class="status-dot"></span>
+            <span class="target-label">Inactivas</span>
+            <strong id="kpi-inactive">—</strong>
+            <small>Seleccionar farmacia</small>
+          </button>
+        </div>
+
+        <div class="sales-target-grid">
+          <article class="sales-target-card">
+            <div class="target-card-head">
+              <span>Ventas del mes</span>
+              <strong id="month-sales-progress-label">0 %</strong>
+            </div>
+            <div class="target-value" id="month-sales">—</div>
+            <div class="target-meta">
+              <span id="month-sales-target">Objetivo: —</span>
+              <span id="month-sales-remaining">Pendiente: —</span>
+            </div>
+            <div class="progress-track">
+              <div id="month-sales-progress" class="progress-fill"></div>
+            </div>
+          </article>
+
+          <article class="sales-target-card">
+            <div class="target-card-head">
+              <span>Facturación anual</span>
+              <strong id="annual-sales-progress-label">0 %</strong>
+            </div>
+            <div class="target-value" id="annual-sales">—</div>
+            <div class="target-meta">
+              <span>Silver: 135.000 €</span>
+              <span>Gold: 165.000 €</span>
+            </div>
+            <div class="progress-track">
+              <div id="annual-sales-progress" class="progress-fill"></div>
+            </div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-title">
+            <h3>Actividades de hoy</h3>
+            <button id="quick-new-activity" class="primary compact">+ Nueva</button>
+          </div>
+          <div id="today-list" class="list"></div>
+        </article>
+
+
+        <article class="panel">
+          <h3>Cambios pendientes</h3>
+          <div id="pending-count" class="big-number secondary">0</div>
+          <button id="sync-pending" class="ghost full">Sincronizar ahora</button>
+        </article>
+      </section>
+
+      <section id="agenda-page" class="page">
+        <div class="page-title">
+          <div>
+            <small>Calendario profesional</small>
+            <h2>Agenda</h2>
+          </div>
+          <button id="new-activity-btn" class="primary compact">+ Actividad</button>
+        </div>
+
+        <div class="segmented" role="tablist">
+          <button data-agenda-mode="day" class="active">Día</button>
+          <button data-agenda-mode="week">Semana</button>
+          <button data-agenda-mode="month">Mes</button>
+        </div>
+
+        <div class="filters">
+          <input id="agenda-anchor" type="date" />
+          <button id="load-agenda" class="ghost">Ver</button>
+        </div>
+        <div id="agenda-range-label" class="range-label"></div>
+
+        <div id="month-calendar" class="month-calendar hidden">
+          <div class="month-weekdays">
+            <span>Lun</span>
+            <span>Mar</span>
+            <span>Mié</span>
+            <span>Jue</span>
+            <span>Vie</span>
+            <span>Sáb</span>
+            <span>Dom</span>
+          </div>
+          <div id="month-calendar-grid" class="month-calendar-grid"></div>
+        </div>
+
+        <div id="agenda-list" class="list"></div>
+      </section>
+
+      <section id="pharmacies-page" class="page">
+        <div class="page-title">
+          <div>
+            <small>Clientes</small>
+            <h2>Farmacias</h2>
+          </div>
+          <button id="new-pharmacy-btn" class="primary compact">+ Farmacia</button>
+        </div>
+        <div class="search-row">
+          <input id="pharmacy-search" type="search" placeholder="Nombre, localidad, CP o ruta" />
+          <button id="search-pharmacies" class="primary compact">Buscar</button>
+        </div>
+        <div class="chips">
+          <button data-state-filter="" class="active">Todas</button>
+          <button data-state-filter="ACTIVO">Activas</button>
+          <button data-state-filter="PROSPECCION">Prospección</button>
+          <button data-state-filter="INACTIVO">Inactivas</button>
+        </div>
+        <div id="pharmacy-list" class="list"></div>
+      </section>
+
+      <section id="orders-page" class="page">
+        <div class="page-title">
+          <div>
+            <small>Actividad comercial</small>
+            <h2>Pedidos</h2>
+          </div>
+        </div>
+        <div class="filters">
+          <input id="orders-from" type="date" />
+          <input id="orders-to" type="date" />
+          <button id="load-orders" class="ghost">Ver</button>
+        </div>
+        <div id="orders-list" class="list"></div>
+      </section>
+
+      <section id="more-page" class="page">
+        <h2>Más</h2>
+        <article class="panel">
+          <h3>Instalar en iPhone</h3>
+          <p>En Safari pulsa <strong>Compartir</strong> y después <strong>Añadir a pantalla de inicio</strong>.</p>
+        </article>
+        <article class="panel">
+          <h3>Versión</h3>
+          <p id="app-version">v1.1.0-ESTABLE-E1</p>
+          <p class="muted">Las actualizaciones de datos son inmediatas. Las actualizaciones del programa se publican en Netlify.</p>
+        </article>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button data-page="today-page" class="active">
+        <img src="./assets/icons/home.png" alt="">
+        <span>Inicio</span>
+      </button>
+      <button data-page="agenda-page">
+        <img src="./assets/icons/event.png" alt="">
+        <span>Visitas</span>
+      </button>
+      <button data-page="pharmacies-page">
+        <img src="./assets/icons/local_pharmacy.png" alt="">
+        <span>Farmacias</span>
+      </button>
+      <button data-page="orders-page">
+        <img src="./assets/icons/deployed_code.png" alt="">
+        <span>Pedidos</span>
+      </button>
+      <button data-page="more-page">
+        <img src="./assets/icons/settings.png" alt="">
+        <span>Configuración</span>
+      </button>
+    </nav>
+  </section>
+
+
+  <dialog id="pharmacy-edit-dialog">
+    <form id="pharmacy-edit-form">
+      <div class="dialog-title">
+        <h3 id="pharmacy-edit-title">Editar farmacia</h3>
+        <button type="button" id="close-pharmacy-edit" class="ghost small">Cerrar</button>
+      </div>
+
+      <div class="two-cols">
+        <div><label>Nombre *</label><input id="ph-name" required></div>
+        <div><label>Estado *</label>
+          <select id="ph-state">
+            <option>ACTIVO</option>
+            <option>PROSPECCIÓN</option>
+            <option>INACTIVO</option>
+          </select>
+        </div>
+      </div>
+      <div class="two-cols">
+        <div><label>Titular</label><input id="ph-owner"></div>
+        <div><label>Contacto</label><input id="ph-contact"></div>
+      </div>
+      <div class="two-cols">
+        <div><label>Teléfono</label><input id="ph-phone" type="tel"></div>
+        <div><label>Móvil</label><input id="ph-mobile" type="tel"></div>
+      </div>
+      <label>Email</label><input id="ph-email" type="email">
+      <label>Dirección</label><input id="ph-address">
+      <div class="two-cols">
+        <div><label>Código postal</label><input id="ph-postal"></div>
+        <div><label>Localidad</label><input id="ph-city"></div>
+      </div>
+      <div class="two-cols">
+        <div><label>Provincia</label><input id="ph-province"></div>
+        <div><label>Ruta</label><input id="ph-route"></div>
+      </div>
+      <div class="two-cols">
+        <div><label>Potencial</label><input id="ph-potential"></div>
+        <div><label>Frecuencia visita</label><input id="ph-frequency"></div>
+      </div>
+      <div class="two-cols">
+        <div><label>CIF/NIF</label><input id="ph-tax"></div>
+        <div><label>Código Lovren</label><input id="ph-lovren"></div>
+      </div>
+      <div class="two-cols">
+        <div><label>Forma de pago</label><input id="ph-payment"></div>
+        <div><label>Horario</label><input id="ph-hours"></div>
+      </div>
+      <label>Instagram</label><input id="ph-instagram">
+      <label>Observaciones</label><textarea id="ph-notes" rows="5"></textarea>
+
+      <button type="submit" class="primary">Guardar farmacia</button>
+      <p id="pharmacy-edit-error" class="error"></p>
+    </form>
+  </dialog>
+
+  <dialog id="activity-dialog">
+    <form id="activity-form">
+      <div class="dialog-title">
+        <h3 id="activity-dialog-title">Nueva actividad</h3>
+        <button type="button" id="close-activity" class="ghost small">Cerrar</button>
+      </div>
+
+      <label>Tipo</label>
+      <select id="activity-type">
+        <option>Visita</option>
+        <option>Cita</option>
+        <option>Formación</option>
+        <option>Llamada</option>
+        <option>Prospección</option>
+        <option>Seguimiento</option>
+      </select>
+
+      <label>Farmacia</label>
+      <input id="activity-pharmacy-search" type="search" placeholder="Escribe al menos 2 letras" />
+      <select id="activity-pharmacy" required></select>
+      <button type="button" id="activity-open-pharmacy" class="ghost full activity-pharmacy-link">
+        🏥 Ficha de farmacia
+      </button>
+
+      <div class="two-cols">
+        <div><label>Fecha</label><input id="activity-date" type="date" required /></div>
+        <div><label>Hora</label><input id="activity-time" type="time" required /></div>
+      </div>
+
+      <div class="two-cols">
+        <div>
+          <label>Contacto</label>
+          <input id="activity-contact" type="text" />
+        </div>
+        <div>
+          <label>Teléfono</label>
+          <input id="activity-phone" type="tel" />
+        </div>
+      </div>
+
+      <label>Duración (minutos)</label>
+      <input id="activity-duration" type="number" value="45" min="1" max="480" />
+
+      <label>Observaciones</label>
+      <div class="voice-row">
+        <textarea id="activity-notes" rows="4"></textarea>
+        <button type="button" id="dictate-notes" class="ghost mic">🎤</button>
+      </div>
+
+      <div id="closed-activity-fields" class="closed-activity-fields hidden">
+        <label>Resultado</label>
+        <input id="activity-result" type="text" />
+
+        <label>Notas de cierre</label>
+        <textarea id="activity-close-notes" rows="4"></textarea>
+
+        <label>Estado</label>
+        <select id="activity-status">
+          <option value="PENDIENTE">PENDIENTE</option>
+          <option value="COMPLETADA">COMPLETADA</option>
+        </select>
+
+        <label class="check-row">
+          <input id="activity-completed" type="checkbox" />
+          <span>Actividad realizada</span>
+        </label>
+      </div>
+
+      <button type="submit" class="primary">Guardar cambios</button>
+      <button type="button" id="open-close-activity" class="close-action hidden">Cerrar actividad</button>
+      <button type="button" id="delete-activity" class="danger-action hidden">Borrar actividad</button>
+      <p id="activity-error" class="error"></p>
+    </form>
+  </dialog>
+
+  <dialog id="pharmacy-dialog" class="pharmacy-full-dialog">
+    <div id="pharmacy-detail"></div>
+    <div class="pharmacy-tabs">
+      <button type="button" data-pharmacy-tab="summary" class="active">Resumen</button>
+      <button type="button" data-pharmacy-tab="activities">Histórico</button>
+      <button type="button" data-pharmacy-tab="orders">Pedidos</button>
+      <button type="button" data-pharmacy-tab="notes">Notas</button>
+      <button type="button" data-pharmacy-tab="contacts">Contactos</button>
+    </div>
+    <div id="pharmacy-tab-content" class="pharmacy-tab-content"></div>
+    <button type="button" id="close-pharmacy" class="ghost full">Volver</button>
+  </dialog>
+
+  <dialog id="visit-dialog">
+    <form id="visit-form">
+      <div class="dialog-title">
+        <h3>Modo visita</h3>
+        <button type="button" id="close-visit" class="ghost small">Cerrar</button>
+      </div>
+      <div id="visit-pharmacy-name" class="visit-name"></div>
+      <div id="visit-timer" class="timer">00:00:00</div>
+      <label>Observaciones</label>
+      <div class="voice-row">
+        <textarea id="visit-notes" rows="6"></textarea>
+        <button type="button" id="dictate-visit" class="ghost mic">🎤</button>
+      </div>
+      <label>Foto</label>
+      <input id="visit-photo" type="file" accept="image/*" capture="environment" />
+      <img id="visit-photo-preview" class="photo-preview hidden" alt="Vista previa" />
+      <button type="button" id="finish-visit" class="primary">Finalizar visita</button>
+      <p id="visit-error" class="error"></p>
+    </form>
+  </dialog>
+
+
+  <dialog id="close-activity-dialog">
+    <form id="close-activity-form">
+      <div class="dialog-title">
+        <h3>Cerrar actividad</h3>
+        <button type="button" id="cancel-close-activity" class="ghost small">Volver</button>
+      </div>
+
+      <label>Resultado</label>
+      <select id="close-result"></select>
+
+      <label>Observaciones de cierre</label>
+      <textarea id="close-notes" rows="5"></textarea>
+
+      <div class="two-cols">
+        <div>
+          <label>Fecha futura</label>
+          <input id="future-action-date" type="date" />
+        </div>
+        <div>
+          <label>Hora futura</label>
+          <input id="future-action-time" type="time" />
+        </div>
+      </div>
+
+      <p class="muted close-help">
+        La fecha futura es opcional. Solo es obligatoria para “Devolver llamada”,
+        “Llamar más tarde” y “Cita concertada”. También puede usarse con “Contestó”
+        para programar la siguiente llamada.
+      </p>
+
+      <button type="submit" class="primary">Confirmar cierre</button>
+      <p id="close-activity-error" class="error"></p>
+    </form>
+  </dialog>
+
+  <dialog id="order-dialog">
+    <form id="order-form">
+      <div class="dialog-title">
+        <h3>Nuevo pedido</h3>
+        <button type="button" id="close-order" class="ghost small">Cerrar</button>
+      </div>
+      <label>Farmacia</label><input id="order-pharmacy-name" readonly>
+      <div class="two-cols">
+        <div><label>Fecha</label><input id="order-date" type="date" required></div>
+        <div><label>Importe</label><input id="order-amount" type="number" min="0" step="0.01" required></div>
+      </div>
+      <label>Número de pedido</label><input id="order-number">
+      <label>Forma de pago</label><input id="order-payment" value="30 días">
+      <label>Tipo de pedido</label>
+      <select id="order-type"><option>Visita</option><option>Teléfono</option></select>
+      <label class="check-row"><input id="order-implantation" type="checkbox"><span>Es implantación</span></label>
+      <label>Realizado por</label><input id="order-made-by">
+      <label>Observaciones</label><textarea id="order-notes" rows="4"></textarea>
+      <button type="submit" class="primary">Guardar pedido</button>
+      <p id="order-error" class="error"></p>
+    </form>
+  </dialog>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
